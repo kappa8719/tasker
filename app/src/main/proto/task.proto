@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+option java_package = "kr.entropi.tasker.proto";
+option java_multiple_files = true;
+
+message RemoteExecutionTaskData {
+  string id = 1;
+  string script = 2;
+}
