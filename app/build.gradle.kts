@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlinx.serialization)
     alias(libs.plugins.protobuf)
+    alias(libs.plugins.kotlin.ksp)
 }
 
 android {
@@ -78,6 +79,9 @@ dependencies {
     implementation(libs.androidx.navigation.fragment)
     implementation(libs.androidx.navigation.dynamic.features.fragment)
     implementation(libs.androidx.datastore)
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
     implementation(libs.protobuf.javalite)
     implementation(libs.protobuf.kotlin.lite)
     implementation(libs.kotlinx.serialization.json)
