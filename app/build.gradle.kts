@@ -1,5 +1,4 @@
 import com.google.protobuf.gradle.id
-import com.google.protobuf.gradle.proto
 
 plugins {
     alias(libs.plugins.android.application)
@@ -8,6 +7,11 @@ plugins {
     alias(libs.plugins.kotlinx.serialization)
     alias(libs.plugins.protobuf)
     alias(libs.plugins.kotlin.ksp)
+    alias(libs.plugins.hilt.android)
+}
+
+hilt {
+    enableAggregatingTask = false
 }
 
 android {
@@ -47,6 +51,12 @@ android {
 //    sourceSets["main"].proto {
 //        srcDir("src/main/proto")
 //    }
+
+    packaging {
+        resources {
+            excludes += "META-INF/versions/9/OSGI-INF/MANIFEST.MF"
+        }
+    }
 }
 
 protobuf {
@@ -73,7 +83,9 @@ dependencies {
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
-    implementation(libs.androidx.material3)
+    implementation(libs.androidx.compose.material)
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.navigation.ui)
     implementation(libs.androidx.navigation.fragment)
@@ -87,6 +99,10 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.ktoml.core)
     implementation(libs.ktoml.file)
+    implementation(libs.hierynomus.sshj)
+    implementation(libs.jsch)
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
