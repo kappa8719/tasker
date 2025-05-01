@@ -10,7 +10,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import kr.entropi.tasker.R
 import kr.entropi.tasker.navigation.CreateTaskType
 import kr.entropi.tasker.ui.navigation.BackButton
 
@@ -21,7 +23,14 @@ fun CreateTaskScreen(type: CreateTaskType) {
         topBar = {
             TopAppBar(
                 modifier = Modifier.shadow(1.dp),
-                title = { Text("작업 생성") },
+                title = {
+                    Text(
+                        stringResource(
+                            R.string.tasks_create_type,
+                            stringResource(type.displayNameId)
+                        )
+                    )
+                },
                 navigationIcon = {
                     BackButton()
                 }

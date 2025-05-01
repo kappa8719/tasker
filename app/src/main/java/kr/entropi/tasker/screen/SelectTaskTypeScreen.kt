@@ -8,12 +8,10 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -21,7 +19,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import kr.entropi.tasker.R
 import kr.entropi.tasker.navigation.CreateTaskEntry
 import kr.entropi.tasker.navigation.CreateTaskType
 import kr.entropi.tasker.navigation.LocalNavController
@@ -35,7 +35,7 @@ fun SelectTaskTypeScreen() {
     Scaffold(topBar = {
         TopAppBar(
             modifier = Modifier.shadow(1.dp),
-            title = { Text("작업 종류 선택") },
+            title = { Text(stringResource(R.string.tasks_create_select_type)) },
             navigationIcon = {
                 BackButton()
             }
@@ -62,7 +62,7 @@ fun SelectTaskTypeScreen() {
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Icon(Icons.Outlined.PlayArrow, contentDescription = null)
-                    Text("원격 실행 작업")
+                    Text(stringResource(R.string.tasks_type_remote_execution))
                 }
             }
         }
