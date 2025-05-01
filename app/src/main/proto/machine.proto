@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+option java_package = "kr.entropi.tasker.proto";
+option java_multiple_files = true;
+
+message ShellMachineData {
+    string id = 1;
+    string alias = 2;
+    string host = 3;
+    uint32 port = 4;
+    string user = 5;
+    string password = 6;
+}
