@@ -54,32 +54,34 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kr.entropi.tasker.navigation.SelectTaskTypeEntry
+import kr.entropi.tasker.R
 import kr.entropi.tasker.navigation.LocalNavController
+import kr.entropi.tasker.navigation.SelectTaskTypeEntry
 import kr.entropi.tasker.task.RemoteExecutionTask
 import kr.entropi.tasker.task.Task
 
-class MainScreenContext {
+class TaskListContext {
     val list = mutableStateListOf<String>()
 }
 
-private val LocalMainScreen = compositionLocalOf<MainScreenContext> {
+private val LocalTaskListScreen = compositionLocalOf<TaskListContext> {
     error("No LocalMainScreen provided")
 }
 
 /**
- * @see kr.entropi.tasker.navigation.MainEntry
+ * @see kr.entropi.tasker.navigation.TaskListEntry
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen() {
+fun TaskListScreen() {
     val navController = LocalNavController.current
-    val mainScreen = remember { MainScreenContext() }
+    val mainScreen = remember { TaskListContext() }
 
-    CompositionLocalProvider(LocalMainScreen provides mainScreen) {
+    CompositionLocalProvider(LocalTaskListScreen provides mainScreen) {
         Scaffold(
             modifier = Modifier.fillMaxSize(), floatingActionButton = {
                 ExtendedFloatingActionButton(
@@ -87,7 +89,7 @@ fun MainScreen() {
                         navController.navigate(SelectTaskTypeEntry)
                     },
                     icon = { Icon(Icons.Filled.Edit, "Create task icon") },
-                    text = { Text(text = "Create Task") },
+                    text = { Text(stringResource(R.string.tasks_create_fab)) },
                 )
             }) { padding ->
             Column(
@@ -146,7 +148,7 @@ fun TaskList(modifier: Modifier = Modifier) {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TaskElement(modifier: Modifier = Modifier, task: Task) {
-    val mainScreen = LocalMainScreen.current
+    val mainScreen = LocalTaskListScreen.current
     val context = LocalContext.current
     val interactionSource = remember { MutableInteractionSource() }
     val shape = RoundedCornerShape(12.dp)
@@ -163,7 +165,11 @@ fun TaskElement(modifier: Modifier = Modifier, task: Task) {
     }
 
     ElevatedButton(
-        onClick = {},
+        onClick = {
+            if(mainScreen.list.isNotEmpty()) {
+                setSelected(!isSelected)
+            }
+        },
         shape = shape,
         contentPadding = PaddingValues(8.dp),
         modifier = modifier
