@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Tasker</string>
+    <string name="tasks.type.remote_execution">Remote Execution Task</string>
+    <string name="tasks.create.type">Create %1$s</string>
+    <string name="tasks.create.select_type">Select task type</string>
+    <string name="tasks.create.fab">Create task</string>
 </resources>

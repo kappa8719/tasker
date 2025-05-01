@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">작업</string>
+    <string name="tasks.type.remote_execution">원격 실행 작업</string>
+    <string name="tasks.create.type">%1$s 생성</string>
+    <string name="tasks.create.select_type">작업 종류 선택</string>
+    <string name="tasks.create.fab">작업 생성</string>
+</resources>
