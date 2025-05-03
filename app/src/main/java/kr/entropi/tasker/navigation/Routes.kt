@@ -5,20 +5,23 @@ import kotlinx.serialization.Serializable
 import kr.entropi.tasker.R
 
 @Serializable
-data object TaskListEntry
+sealed interface Route
 
 @Serializable
-data object SelectTaskTypeEntry
+data object TaskListRoute : Route
 
 @Serializable
-data class CreateTaskEntry(val type: CreateTaskType)
+data object SelectTaskTypeRoute : Route
+
+@Serializable
+data class CreateTaskRoute(val type: CreateTaskType) : Route
 
 enum class CreateTaskType(@StringRes val displayNameId: Int) {
     RemoteExecution(R.string.tasks_type_remote_execution)
 }
 
 @Serializable
-data object MachineListEntry
+data object MachineListRoute : Route
 
 @Serializable
-data object AddMachineEntry
+data object AddMachineRoute : Route
