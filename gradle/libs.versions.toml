@@ -21,6 +21,7 @@ androidx-compose-material = "1.9.0-alpha01"
 sshj = "0.38.0"
 jsch = "0.2.26"
 hilt = "2.51.1"
+hilt-navigation = "1.2.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -47,13 +48,14 @@ androidx-navigation-dynamic-features-fragment = { group = "androidx.navigation",
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+androidx-hilt-navigation = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hilt-navigation" }
 protobuf-javalite = { group = "com.google.protobuf", name = "protobuf-javalite", version.ref = "protobuf" }
 protobuf-kotlin-lite = { group = "com.google.protobuf", name = "protobuf-kotlin-lite", version.ref = "protobuf" }
 protobuf-protoc = { group = "com.google.protobuf", name = "protoc", version.ref = "protobuf" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 ktoml-core = { group = "com.akuleshov7", name = "ktoml-core", version.ref = "ktoml" }
 ktoml-file = { group = "com.akuleshov7", name = "ktoml-file", version.ref = "ktoml" }
-hierynomus-sshj = { group = "com.hierynomus", name = "sshj", version.ref = "sshj"}
+hierynomus-sshj = { group = "com.hierynomus", name = "sshj", version.ref = "sshj" }
 jsch = { group = "com.github.mwiede", name = "jsch", version.ref = "jsch" }
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt" }

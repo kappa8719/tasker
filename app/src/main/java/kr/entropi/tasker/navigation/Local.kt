@@ -14,10 +14,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import kr.entropi.tasker.screen.CreateTaskScreen
+import kr.entropi.tasker.screen.task.UpdateTaskScreen
 import kr.entropi.tasker.screen.machine.MachineListScreen
-import kr.entropi.tasker.screen.SelectTaskTypeScreen
-import kr.entropi.tasker.screen.TaskListScreen
+import kr.entropi.tasker.screen.task.SelectTaskTypeScreen
+import kr.entropi.tasker.screen.task.TaskListScreen
 import kr.entropi.tasker.screen.machine.AddMachineScreen
 
 val LocalNavController =
@@ -34,7 +34,7 @@ fun LocalNavHost(block: @Composable (content: @Composable () -> Unit) -> Unit) {
         block {
             NavHost(
                 navController = navController,
-                startDestination = TaskListEntry,
+                startDestination = TaskListRoute,
                 enterTransition = {
                     fadeIn(tweenFloat) + slideIntoContainer(
                         AnimatedContentTransitionScope.SlideDirection.Start,
@@ -64,14 +64,14 @@ fun LocalNavHost(block: @Composable (content: @Composable () -> Unit) -> Unit) {
                     )
                 }
             ) {
-                composable<TaskListEntry> { TaskListScreen() }
-                composable<SelectTaskTypeEntry> { SelectTaskTypeScreen() }
-                composable<CreateTaskEntry> { entry ->
-                    val entry = entry.toRoute<CreateTaskEntry>()
-                    CreateTaskScreen(type = entry.type)
+                composable<TaskListRoute> { TaskListScreen() }
+                composable<SelectTaskTypeRoute> { SelectTaskTypeScreen() }
+                composable<UpdateTaskRoute> { entry ->
+                    val entry = entry.toRoute<UpdateTaskRoute>()
+                    UpdateTaskScreen(route = entry)
                 }
-                composable<MachineListEntry> { MachineListScreen() }
-                composable<AddMachineEntry> { AddMachineScreen() }
+                composable<MachineListRoute> { MachineListScreen() }
+                composable<AddMachineRoute> { AddMachineScreen() }
             }
         }
     }

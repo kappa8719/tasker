@@ -1,42 +1,77 @@
 package kr.entropi.tasker.task
 
-import androidx.datastore.core.CorruptionException
-import androidx.datastore.core.Serializer
-import com.google.protobuf.InvalidProtocolBufferException
+import android.content.Context
 import kotlinx.serialization.Serializable
-import kr.entropi.tasker.proto.RemoteExecutionTaskData
-import java.io.InputStream
-import java.io.OutputStream
+import kotlinx.serialization.Transient
+import kr.entropi.tasker.machine.MachinesModule
+import kr.entropi.tasker.machine.ShellMachine
+import kr.entropi.tasker.util.Snowflake
+import kr.entropi.tasker.util.Snowflakes
 
 @Serializable
-class RemoteExecutionTask(
+data class RemoteExecutionTask(
+    override val id: Snowflake = Snowflakes.nextId(),
+    override val name: String,
+    override val askBeforeRun: Boolean = false,
     val script: String,
-    override val id: String
+    val machine: Snowflake,
+    val executeWithSudo: Boolean = false
 ) : Task() {
-    companion object {
-        fun fromData(data: RemoteExecutionTaskData): RemoteExecutionTask {
-            return RemoteExecutionTask(
-                script = data.script,
-                id = data.id
-            )
+    override val dependsOnMachines = setOf(machine)
+
+    @Transient
+    val escapedScript = script.trimIndent().replace("\"", "\\\"")
+
+    override fun execute(context: Context): String {
+        val machines = MachinesModule.provideMachinesRepository(context).machines
+        val machine = machines.find { it.id == machine }
+
+        if (machine !is ShellMachine) {
+            return "invalid machine ${this.machine}"
         }
+
+        val result =
+            machine.executeCommandOnce("sh -c \"${escapedScript}\"", sudo = executeWithSudo)
+        return result.prettier()
     }
 
-    fun toData(): RemoteExecutionTask {
-        return RemoteExecutionTask(script = this.script, id = this.id)
-    }
-}
+    private fun ShellMachine.CommandExecuteResult.prettier(): String {
+        var indentLevel = 0
+        val indentWidth = 4
 
-object RemoteExecutionTaskDataSerializer: Serializer<RemoteExecutionTaskData> {
-    override val defaultValue: RemoteExecutionTaskData = RemoteExecutionTaskData.getDefaultInstance()
+        fun padding() = "".padStart(indentLevel * indentWidth)
 
-    override suspend fun readFrom(input: InputStream): RemoteExecutionTaskData {
-        try {
-            return RemoteExecutionTaskData.parseFrom(input)
-        } catch (e: InvalidProtocolBufferException) {
-            throw CorruptionException("Cannot read proto.", e)
+        val toString = toString()
+
+        val stringBuilder = StringBuilder(toString.length)
+
+        var i = 0
+        while (i < toString.length) {
+            when (val char = toString[i]) {
+                '(', '[', '{' -> {
+                    indentLevel++
+                    stringBuilder.appendLine(char).append(padding())
+                }
+
+                ')', ']', '}' -> {
+                    indentLevel--
+                    stringBuilder.appendLine().append(padding()).append(char)
+                }
+
+                ',' -> {
+                    stringBuilder.appendLine(char).append(padding())
+                    // ignore space after comma as we have added a newline
+                    val nextChar = toString.getOrElse(i + 1) { char }
+                    if (nextChar == ' ') i++
+                }
+
+                else -> {
+                    stringBuilder.append(char)
+                }
+            }
+            i++
         }
-    }
 
-    override suspend fun writeTo(t: RemoteExecutionTaskData, output: OutputStream) = t.writeTo(output)
+        return stringBuilder.toString()
+    }
 }

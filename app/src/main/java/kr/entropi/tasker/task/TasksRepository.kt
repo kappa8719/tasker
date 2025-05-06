@@ -1,4 +1,4 @@
-package kr.entropi.tasker.machine
+package kr.entropi.tasker.task
 
 import android.content.Context
 import android.util.Log
@@ -13,13 +13,13 @@ import java.io.File
 import javax.inject.Singleton
 
 @Singleton
-class MachinesRepository(applicationContext: Context) {
-    private val directory = File(applicationContext.filesDir, "machines")
+class TasksRepository(applicationContext: Context) {
+    private val directory = File(applicationContext.filesDir, "tasks")
 
     private val _markedForRemove = mutableSetOf<Snowflake>()
-    private val _machines = MutableStateFlow(setOf<Machine>())
-    val machines = MutableSetStateFlow(
-        _machines,
+    private val _tasks = MutableStateFlow(setOf<Task>())
+    val tasks = MutableSetStateFlow(
+        _tasks,
         onAdd = { _markedForRemove -= it.id },
         onRemove = { _markedForRemove += it.id }
     )
@@ -34,13 +34,13 @@ class MachinesRepository(applicationContext: Context) {
     @OptIn(ExperimentalSerializationApi::class)
     fun readFromDisk(): Boolean {
         try {
-            _machines.update {
+            _tasks.update {
                 (directory.listFiles { it.extension == "json" } ?: return false).map { file ->
-                    Json.decodeFromStream<Machine>(file.inputStream())
+                    Json.decodeFromStream<Task>(file.inputStream())
                 }.toSet()
             }
         } catch (e: Throwable) {
-            Log.e(this::class.simpleName, "Failed to read machines from disk", e)
+            Log.e(this::class.simpleName, "Failed to read tasks from disk", e)
         }
 
         return true
@@ -49,16 +49,16 @@ class MachinesRepository(applicationContext: Context) {
     fun storeToDisk() {
         try {
             directory.mkdirs()
-            machines.forEach { machine ->
-                val file = File(directory, "${machine.id}.json")
-                val string = Json.encodeToString(machine)
-                file.writeText(string)
-            }
             _markedForRemove.forEach {
                 getFile(it).delete()
             }
+            tasks.forEach { task ->
+                val file = File(directory, "${task.id}.json")
+                val string = Json.encodeToString(task)
+                file.writeText(string)
+            }
         } catch (e: Throwable) {
-            Log.e(this::class.simpleName, "Failed to store machines to disk", e)
+            Log.e(this::class.simpleName, "Failed to store tasks to disk", e)
         }
     }
 }

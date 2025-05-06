@@ -1,4 +1,4 @@
-package kr.entropi.tasker.screen
+package kr.entropi.tasker.screen.task
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -22,8 +22,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kr.entropi.tasker.R
-import kr.entropi.tasker.navigation.CreateTaskEntry
-import kr.entropi.tasker.navigation.CreateTaskType
+import kr.entropi.tasker.navigation.UpdateTaskRoute
 import kr.entropi.tasker.navigation.LocalNavController
 import kr.entropi.tasker.ui.navigation.BackButton
 
@@ -53,7 +52,7 @@ fun SelectTaskTypeScreen() {
                     .fillMaxWidth()
                     .heightIn(min = 64.dp),
                 onClick = {
-                    navController.navigate(CreateTaskEntry(type = CreateTaskType.RemoteExecution))
+                    navController.navigate(UpdateTaskRoute(type = UpdateTaskRoute.UpdateTaskType.RemoteExecution))
                 }
             ) {
                 Row(

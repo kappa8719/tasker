@@ -12,11 +12,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.input.InputTransformation
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.byValue
 import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Error
@@ -43,12 +45,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.jcraft.jsch.JSch
 import com.jcraft.jsch.JSchException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kr.entropi.tasker.machine.MachinesViewModel
+import kr.entropi.tasker.machine.ShellMachine
+import kr.entropi.tasker.navigation.LocalNavController
+import kr.entropi.tasker.navigation.MachineListRoute
 import kr.entropi.tasker.ui.navigation.BackButton
 import rememberRequestPermission
+import java.net.IDN
+import java.net.InetAddress
 import java.net.SocketException
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -60,12 +69,47 @@ data class AddMachineValues(
     val user: String = "",
     val password: String = ""
 ) {
-    val portParsed get() = port.toUShortOrNull()
+    val isAliasValid get() = alias.isNotBlank()
+    val isHostValid
+        get() = isValidHost(host)
+    val isUserValid get() = user.isNotBlank()
+
+    val parsedPort get() = port.toUShortOrNull() ?: 22u
+
+    val isFormValid get() = isAliasValid && isHostValid && isUserValid
+
+    private fun isValidHost(input: String): Boolean {
+        // Check for empty or too long
+        if (input.isEmpty() || input.length > 253) return false
+
+        // IPv4 regex
+        val ipv4Regex = Regex("""^((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.|$)){4}$""")
+        if (ipv4Regex.matches(input)) return true
+
+        // Try IPv6 validation
+        try {
+            val addr = InetAddress.getByName(input)
+            if (addr.hostAddress?.contains(":") == true) return true // IPv6
+        } catch (e: Exception) {
+            // Not an IP address
+        }
+
+        // Hostname validation
+        val hostnameRegex =
+            Regex("""^(?=.{1,253}$)(?!-)[A-Za-z0-9-]{1,63}(?<!-)(\.(?!-)[A-Za-z0-9-]{1,63}(?<!-))*$""")
+        // Convert to ASCII for IDN (internationalized domain names)
+        val asciiInput = try {
+            IDN.toASCII(input)
+        } catch (e: Exception) {
+            return false
+        }
+        return hostnameRegex.matches(asciiInput)
+    }
 
     fun testConnection(timeout: Duration = 5.seconds): TestConnectionResult {
         try {
             val jsch = JSch()
-            val session = jsch.getSession(user, host, portParsed?.toInt() ?: 22)
+            val session = jsch.getSession(user, host, parsedPort.toInt())
             session.setPassword(password)
             session.setConfig("StrictHostKeyChecking", "no")
 
@@ -81,6 +125,16 @@ data class AddMachineValues(
         return TestConnectionResult.Success
     }
 
+    fun toShellMachine(): ShellMachine {
+        return ShellMachine(
+            alias = alias,
+            host = host,
+            port = parsedPort,
+            user = user,
+            password = password
+        )
+    }
+
     sealed interface TestConnectionResult {
         data object FailedPermission : TestConnectionResult
         data class FailedSocket(val exception: SocketException) : TestConnectionResult
@@ -93,7 +147,9 @@ data class AddMachineValues(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddMachineScreen() {
+    val machinesViewModel = hiltViewModel<MachinesViewModel>()
     var formState by remember { mutableStateOf(AddMachineValues()) }
+    val navController = LocalNavController.current
 
     Scaffold(
         topBar = {
@@ -114,16 +170,22 @@ fun AddMachineScreen() {
                     .fillMaxWidth()
                     .padding(8.dp, 8.dp, 8.dp, 20.dp), horizontalArrangement = Arrangement.End
             ) {
-                Button({}) {
+                Button({
+                    if (formState.isFormValid) {
+                        machinesViewModel.machines += formState.toShellMachine()
+                        navController.popBackStack()
+                    }
+                }) {
                     Text("Add machine")
                 }
             }
         }
     ) { padding ->
-        Box(
+        Column(
             Modifier
                 .fillMaxSize()
                 .padding(padding)
+                .verticalScroll(rememberScrollState())
         ) {
             AddMachineForm(formState) { formState = it }
         }
@@ -134,7 +196,7 @@ fun AddMachineScreen() {
 @Composable
 fun AddMachineForm(
     values: AddMachineValues,
-    onValuesChange: (AddMachineValues) -> Unit
+    onValuesChange: (AddMachineValues) -> Unit,
 ) {
     Column(
         Modifier
@@ -147,7 +209,19 @@ fun AddMachineForm(
             { onValuesChange(values.copy(alias = it)) },
             modifier = Modifier.fillMaxWidth(),
             label = { Text("Alias") },
-            singleLine = true
+            singleLine = true,
+            isError = values.alias.isBlank(),
+            supportingText = {
+                AnimatedVisibility(
+                    values.alias.isBlank(),
+                    enter = expandVertically(tween()),
+                    exit = shrinkVertically(
+                        tween()
+                    )
+                ) {
+                    Text("Alias must be not blank")
+                }
+            }
         )
         Row(Modifier, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedTextField(
@@ -155,7 +229,19 @@ fun AddMachineForm(
                 { onValuesChange(values.copy(host = it)) },
                 modifier = Modifier.weight(2f),
                 label = { Text("Host") },
-                singleLine = true
+                singleLine = true,
+                isError = !values.isHostValid,
+                supportingText = {
+                    AnimatedVisibility(
+                        !values.isHostValid,
+                        enter = expandVertically(tween()),
+                        exit = shrinkVertically(
+                            tween()
+                        )
+                    ) {
+                        Text("Failed to parse host")
+                    }
+                }
             )
 
             val portFieldState = rememberTextFieldState()
@@ -198,7 +284,19 @@ fun AddMachineForm(
             { onValuesChange(values.copy(user = it)) },
             modifier = Modifier.fillMaxWidth(),
             label = { Text("User") },
-            singleLine = true
+            singleLine = true,
+            isError = values.user.isBlank(),
+            supportingText = {
+                AnimatedVisibility(
+                    values.user.isBlank(),
+                    enter = expandVertically(tween()),
+                    exit = shrinkVertically(
+                        tween()
+                    )
+                ) {
+                    Text("User must be not blank")
+                }
+            }
         )
         OutlinedTextField(
             values.password,
@@ -223,7 +321,7 @@ private fun TestConnectionButton(values: AddMachineValues, modifier: Modifier = 
         )
     }
     val requestPermission = rememberRequestPermission()
-    val coroutineScope = rememberCoroutineScope({ Dispatchers.IO })
+    val coroutineScope = rememberCoroutineScope { Dispatchers.IO }
 
     if (isTestResultDialogVisible && testResult != null) {
         testResult!!

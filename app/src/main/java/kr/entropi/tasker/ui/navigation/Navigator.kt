@@ -24,12 +24,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavOptions
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.navOptions
+import androidx.navigation.ui.navigateUp
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kr.entropi.tasker.navigation.LocalNavController
-import kr.entropi.tasker.navigation.MachineListEntry
-import kr.entropi.tasker.navigation.TaskListEntry
+import kr.entropi.tasker.navigation.MachineListRoute
+import kr.entropi.tasker.navigation.TaskListRoute
 
 private class LocalNavigatorContext(val drawerState: DrawerState)
 
@@ -55,12 +57,12 @@ fun Navigator(content: @Composable () -> Unit) {
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         NavigatorItem(
-                            route = TaskListEntry,
+                            route = TaskListRoute,
                             icon = { Icon(Icons.Default.Checklist, null) },
                             text = { Text(text = "Tasks") }
                         )
                         NavigatorItem(
-                            route = MachineListEntry,
+                            route = MachineListRoute,
                             icon = { Icon(Icons.Default.Dns, null) },
                             text = { Text(text = "Machines") }
                         )
@@ -95,7 +97,13 @@ private inline fun <reified T : Any> NavigatorItem(
         onClick = {
             // navigate
             if (currentDestination?.hierarchy?.first()?.hasRoute<T>() != true) {
-                navController.navigate(route)
+                navController.navigate(route) {
+                    currentDestination?.route?.let {
+                        popUpTo(it){
+                            inclusive = true
+                        }
+                    }
+                }
             }
 
             // close drawer
